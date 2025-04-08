@@ -124,6 +124,7 @@ func (l *Lexer) readNumber() string {
 	}
 	return l.input[position:l.position]
 }
+
 func isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
 }
