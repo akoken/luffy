@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/luffy.png" alt="Luffy Logo" width="200" />
+</p>
+
 # Luffy Programming Language
 
 Luffy is a simple, interpreted programming language designed for learning and experimentation. It supports functions, higher-order functions, closures, integers, and arithmetic operations. The language is implemented in Go and features a lexer, parser, evaluator, and REPL.
