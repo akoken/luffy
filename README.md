@@ -4,6 +4,12 @@
 
 # Luffy Programming Language
 
+Inspired by the adventurous spirit of Monkey D. Luffy from the anime *One Piece*, the Luffy programming language embodies freedom and exploration. As Luffy once said:
+
+> "I don't want to conquer anything. I just think the guy with the most freedom in the entire ocean is the Pirate King."
+
+Luffy, the language, is designed to give developers the freedom to explore programming concepts and live on their own terms, just like the Pirate King. It is simple, expressive, and encourages creativity.
+
 Luffy is a simple, interpreted programming language designed for learning and experimentation. It supports functions, higher-order functions, closures, integers, and arithmetic operations. The language is implemented in Go and features a lexer, parser, evaluator, and REPL.
 
 ## Features
