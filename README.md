@@ -15,6 +15,7 @@ Luffy is a simple, interpreted programming language designed for learning and ex
 ## Features
 
 - **Integers and Arithmetic**: Perform basic arithmetic operations such as addition, subtraction, multiplication, and division.
+- **Strings**: Work with string literals and concatenation.
 - **Booleans and Comparisons**: Use boolean values (`true`, `false`) and comparison operators (`<`, `>`, `==`, `!=`).
 - **Functions**: Define and call functions, including higher-order functions.
 - **Closures**: Create and use closures for functional programming.
@@ -34,6 +35,13 @@ Luffy is a simple, interpreted programming language designed for learning and ex
 1 > 2               // Result: false
 1 == 1              // Result: true
 1 != 2              // Result: true
+```
+
+### String Operations
+```luffy
+"Hello" + " " + "World!"  // Result: "Hello World!"
+"Luffy" == "Luffy"          // Result: true
+"Luffy" != "Zoro"           // Result: true
 ```
 
 ### Functions
