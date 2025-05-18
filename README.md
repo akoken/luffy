@@ -16,10 +16,13 @@ Luffy is a simple, interpreted programming language designed for learning and ex
 
 - **Integers and Arithmetic**: Perform basic arithmetic operations such as addition, subtraction, multiplication, and division.
 - **Strings**: Work with string literals and concatenation.
+- **Arrays**: Create and manipulate arrays, including built-in functions like `first`, `last`, `rest`, and `len`.
+- **Hashmaps**: Use hashmaps (dictionaries) for key-value storage and retrieval.
 - **Booleans and Comparisons**: Use boolean values (`true`, `false`) and comparison operators (`<`, `>`, `==`, `!=`).
 - **Functions**: Define and call functions, including higher-order functions.
 - **Closures**: Create and use closures for functional programming.
 - **Conditionals**: Use `if` and `else` expressions for control flow.
+- **Console Output**: Use the built-in `gum` function to print any value to the console.
 
 ## Examples
 
@@ -42,6 +45,22 @@ Luffy is a simple, interpreted programming language designed for learning and ex
 "Hello" + " " + "World!"  // Result: "Hello World!"
 "Luffy" == "Luffy"          // Result: true
 "Luffy" != "Zoro"           // Result: true
+```
+
+### Array Operations
+```luffy
+let arr = [1, 2, 3, 4];
+first(arr);        // Result: 1
+last(arr);         // Result: 4
+rest(arr);         // Result: [2, 3, 4]
+len(arr);          // Result: 4
+```
+
+### Hashmaps
+```luffy
+let m = {"name": "Luffy", "bounty": 300000000};
+m["name"];        // Result: "Luffy"
+m["bounty"];      // Result: 300000000
 ```
 
 ### Functions
@@ -73,6 +92,13 @@ addTwo(3);           // Result: 5
 ```luffy
 if (10 > 5) { 10 } else { 5 };  // Result: 10
 if (false) { 1 } else { 2 };    // Result: 2
+```
+
+### Console Output
+```luffy
+gum("Hello, Grand Line!");      // Prints: Hello, Grand Line!
+gum([1, 2, 3]);                  // Prints: [1, 2, 3]
+gum({"name": "Luffy"});         // Prints: {"name": "Luffy"}
 ```
 
 ## Getting Started
