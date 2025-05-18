@@ -367,6 +367,7 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`rest([])`, nil},
 		{`push([], 1)`, []int{1}},
 		{`push(1, 1)`, "argument to `push` must be ARRAY, got INTEGER"},
+		{`gum("hello", "world!")`, nil},
 	}
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
