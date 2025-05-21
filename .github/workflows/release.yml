@@ -39,7 +39,7 @@ jobs:
           go build -v -o dist/${GOOS}-${GOARCH}/luffy
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: luffy-${{ matrix.os }}-${{ matrix.arch }}
           path: dist/${{ matrix.os }}-${{ matrix.arch }}/luffy
