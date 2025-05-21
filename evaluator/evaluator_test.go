@@ -543,3 +543,23 @@ func TestHashIndexExpressions(t *testing.T) {
 		}
 	}
 }
+
+func TestWhileLoopExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{"let i = 0; while (i < 5) { i = i + 1; } i;", 5},
+		{"let i = 0; while (false) { i = i + 1; } i;", 0},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		integer, ok := tt.expected.(int)
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
+}

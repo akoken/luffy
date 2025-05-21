@@ -39,6 +39,14 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		env.Set(node.Name.Value, val)
 
+	case *ast.AssignmentStatement:
+		val := Eval(node.Value, env)
+		if isError(val) {
+			return val
+		}
+		env.Set(node.Name.Value, val)
+		return val
+
 	// Expressions
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
@@ -115,6 +123,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 
 	case *ast.HashLiteral:
 		return evalHashLiteral(node, env)
+
+	case *ast.WhileExpression:
+		return evalWhileExpression(node, env)
 	}
 
 	return nil
@@ -263,6 +274,29 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 	} else {
 		return NULL
 	}
+}
+
+func evalWhileExpression(fe *ast.WhileExpression, env *object.Environment) object.Object {
+	var result object.Object
+	for {
+		condition := Eval(fe.Condition, env)
+		if isError(condition) {
+			return condition
+		}
+
+		if !isTruthy(condition) {
+			break
+		}
+
+		result = Eval(fe.Body, env)
+		if result != nil {
+			rt := result.Type()
+			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
+				return result
+			}
+		}
+	}
+	return result
 }
 
 func evalIdentifier(

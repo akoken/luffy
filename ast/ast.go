@@ -308,3 +308,43 @@ func (hl *HashLiteral) String() string {
 	out.WriteString("}")
 	return out.String()
 }
+
+type WhileExpression struct {
+	Token     token.Token // The 'for' token
+	Condition Expression
+	Body      *BlockStatement
+}
+
+func (fe *WhileExpression) expressionNode()      {}
+func (fe *WhileExpression) TokenLiteral() string { return fe.Token.Literal }
+func (fe *WhileExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("for")
+	out.WriteString(fe.Condition.String())
+	out.WriteString(" ")
+	out.WriteString(fe.Body.String())
+	return out.String()
+}
+
+type AssignmentStatement struct {
+	Token token.Token // the IDENT token
+	Name  *Identifier
+	Value Expression
+}
+
+func (as *AssignmentStatement) statementNode()       {}
+func (as *AssignmentStatement) TokenLiteral() string { return as.Token.Literal }
+func (as *AssignmentStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(as.Name.String())
+	out.WriteString(" = ")
+
+	if as.Value != nil {
+		out.WriteString(as.Value.String())
+	}
+
+	out.WriteString(";")
+
+	return out.String()
+}
