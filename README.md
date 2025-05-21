@@ -22,6 +22,7 @@ Luffy is a simple, interpreted programming language designed for learning and ex
 - **Functions**: Define and call functions, including higher-order functions.
 - **Closures**: Create and use closures for functional programming.
 - **Conditionals**: Use `if` and `else` expressions for control flow.
+- **Loops**: Use `while` loops for iterative control flow.
 - **Console Output**: Use the built-in `gum` function to print any value to the console.
 
 ## Examples
@@ -92,6 +93,15 @@ addTwo(3);           // Result: 5
 ```luffy
 if (10 > 5) { 10 } else { 5 };  // Result: 10
 if (false) { 1 } else { 2 };    // Result: 2
+```
+
+### Loops
+```luffy
+let i = 0;
+while (i < 5) {
+  i = i + 1;
+}
+i; // Result: 5
 ```
 
 ### Console Output
