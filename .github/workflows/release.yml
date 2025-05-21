@@ -1,32 +1,42 @@
-name: Release
+name: Go Release Build
+
+# Trigger the workflow on pushes to tags like v1.0, v0.1.0, etc.
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 jobs:
   build:
     name: Build ${{ matrix.os }}/${{ matrix.arch }}
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         include:
           - os: linux
             arch: amd64
+            output_name: luffy # Binary name for this platform
+            asset_suffix: linux-amd64
           - os: windows
             arch: amd64
+            output_name: luffy.exe # Binary name for Windows (note .exe)
+            asset_suffix: windows-amd64
           - os: darwin
             arch: arm64
-
+            output_name: luffy # Binary name for this platform
+            asset_suffix: darwin-arm64
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.24.2
+          go-version: '1.24.2'
+          cache-dependency-path: go.sum # Explicitly point to go.sum for caching
+
+      - name: Ensure go.sum is up-to-date (helps with cache)
+        run: go mod tidy # This ensures go.sum is present and correct
 
       - name: Build binary
         env:
@@ -34,12 +44,69 @@ jobs:
           GOARCH: ${{ matrix.arch }}
           CGO_ENABLED: 0
         run: |
-          echo "Building for $GOOS/$GOARCH"
-          mkdir -p dist/${GOOS}-${GOARCH}
-          go build -v -o dist/${GOOS}-${GOARCH}/luffy
+          echo "Building for $GOOS/$GOARCH -> ${{ matrix.output_name }}"
+          mkdir -p dist/${{ matrix.asset_suffix }}
+          # Build the Go program. Assumes your main package is in the current directory.
+          # The output path includes the platform-specific binary name.
+          go build -v -o dist/${{ matrix.asset_suffix }}/${{ matrix.output_name }} .
 
-      - name: Upload artifact
+      - name: Upload artifact for release job
         uses: actions/upload-artifact@v4
         with:
-          name: luffy-${{ matrix.os }}-${{ matrix.arch }}
-          path: dist/${{ matrix.os }}-${{ matrix.arch }}/luffy
+          # Name of the artifact bundle (will be directory name after download)
+          name: luffy-${{ matrix.asset_suffix }}
+          # Path to the actual binary file to upload
+          path: dist/${{ matrix.asset_suffix }}/${{ matrix.output_name }}
+
+  create_release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    # This job depends on the successful completion of all 'build' matrix jobs
+    needs: build
+    # Permissions needed to create a release and upload assets
+    permissions:
+      contents: write
+    steps:
+      # Optional: Checkout code if you need repo files for release notes, etc.
+      # - name: Checkout code
+      #   uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          # Download all artifacts produced by the 'build' job into this directory
+          path: release-artifacts
+
+      - name: List downloaded artifacts (for debugging)
+        run: |
+          echo "Downloaded artifacts structure:"
+          ls -R release-artifacts
+          # Expected structure:
+          # release-artifacts/
+          # ├── luffy-darwin-arm64/
+          # │   └── luffy
+          # ├── luffy-linux-amd64/
+          # │   └── luffy
+          # └── luffy-windows-amd64/
+          #     └── luffy.exe
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          # The GITHUB_TOKEN is automatically provided by GitHub Actions
+          # tag_name: ${{ github.ref_name }} # Uses the tag that triggered the workflow (default)
+          # name: Release ${{ github.ref_name }} # Optional: customize release name (default is tag name)
+          # body: | # Optional: customize release body
+          #   Automated release for ${{ github.ref_name }}
+          #   This release includes the following binaries:
+          #   - Linux (amd64)
+          #   - Windows (amd64)
+          #   - macOS (arm64)
+          draft: false # Set to true to create a draft release
+          prerelease: false # Set to true to mark as a pre-release
+          files: | # Paths to the files to upload as release assets
+            release-artifacts/luffy-linux-amd64/luffy
+            release-artifacts/luffy-windows-amd64/luffy.exe
+            release-artifacts/luffy-darwin-arm64/luffy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
