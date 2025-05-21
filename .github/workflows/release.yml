@@ -1,112 +1,129 @@
-name: Go Release Build
+name: Release Go Binaries
 
-# Trigger the workflow on pushes to tags like v1.0, v0.1.0, etc.
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*' # Triggers the workflow on version tags like v1.0.0, v0.1.0
 
 jobs:
-  build:
-    name: Build ${{ matrix.os }}/${{ matrix.arch }}
+  release:
+    name: Build and Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to create releases and upload assets
     strategy:
       matrix:
-        include:
-          - os: linux
-            arch: amd64
-            output_name: luffy # Binary name for this platform
-            asset_suffix: linux-amd64
-          - os: windows
-            arch: amd64
-            output_name: luffy.exe # Binary name for Windows (note .exe)
-            asset_suffix: windows-amd64
-          - os: darwin
-            arch: arm64
-            output_name: luffy # Binary name for this platform
-            asset_suffix: darwin-arm64
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
+        exclude: # Exclude unsupported combinations
+          - goos: windows
+            goarch: arm64
+          - goos: linux
+            goarch: arm64 # If you don't need linux-arm64, otherwise remove this line
+        include: # Ensure darwin-arm64 is explicitly included
+          - goos: darwin
+            goarch: arm64
+          - goos: linux
+            goarch: amd64
+          - goos: windows
+            goarch: amd64
+
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24.2'
-          cache-dependency-path: go.sum # Explicitly point to go.sum for caching
+          go-version: '^1.24.2' # Specify your Go version, or use 'stable'
 
-      - name: Ensure go.sum is up-to-date (helps with cache)
-        run: go mod tidy # This ensures go.sum is present and correct
+      - name: Get Project Name
+        id: project_name
+        run: echo "name=$(basename $GITHUB_REPOSITORY)" >> $GITHUB_OUTPUT
 
-      - name: Build binary
+      - name: Get Version
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Build for ${{ matrix.goos }}-${{ matrix.goarch }}
         env:
-          GOOS: ${{ matrix.os }}
-          GOARCH: ${{ matrix.arch }}
-          CGO_ENABLED: 0
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0 # Disable CGO for better cross-compilation unless you need it
         run: |
-          echo "Building for $GOOS/$GOARCH -> ${{ matrix.output_name }}"
-          mkdir -p dist/${{ matrix.asset_suffix }}
-          # Build the Go program. Assumes your main package is in the current directory.
-          # The output path includes the platform-specific binary name.
-          go build -v -o dist/${{ matrix.asset_suffix }}/${{ matrix.output_name }} .
+          go build -v -o ${{ steps.project_name.outputs.name }}_${{ steps.get_version.outputs.version }}_${{ matrix.goos }}_${{ matrix.goarch }}$(if [ "${{ matrix.goos }}" == "windows" ]; then echo ".exe"; fi) ./...
+          # Replace ./... with the path to your main package if it's not in the root
+          # e.g., go build -v -o output_name ./cmd/myapp
 
-      - name: Upload artifact for release job
-        uses: actions/upload-artifact@v4
+      - name: Create Archive for ${{ matrix.goos }}-${{ matrix.goarch }}
+        shell: bash
+        run: |
+          PROJECT_NAME=${{ steps.project_name.outputs.name }}
+          VERSION=${{ steps.get_version.outputs.version }}
+          GOOS=${{ matrix.goos }}
+          GOARCH=${{ matrix.goarch }}
+          FILENAME_BASE="${PROJECT_NAME}_${VERSION}_${GOOS}_${GOARCH}"
+          EXECUTABLE_NAME="${FILENAME_BASE}"
+          ARCHIVE_NAME="${FILENAME_BASE}"
+
+          if [ "$GOOS" == "windows" ]; then
+            EXECUTABLE_NAME+=".exe"
+            ARCHIVE_NAME+=".zip"
+            zip "$ARCHIVE_NAME" "$EXECUTABLE_NAME"
+          else
+            ARCHIVE_NAME+=".tar.gz"
+            tar -czvf "$ARCHIVE_NAME" "$EXECUTABLE_NAME"
+          fi
+          echo "ASSET_NAME=${ARCHIVE_NAME}" >> $GITHUB_ENV
+          echo "ASSET_PATH=${ARCHIVE_NAME}" >> $GITHUB_ENV
+
+      - name: Upload Release Asset for ${{ matrix.goos }}-${{ matrix.goarch }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # Name of the artifact bundle (will be directory name after download)
-          name: luffy-${{ matrix.asset_suffix }}
-          # Path to the actual binary file to upload
-          path: dist/${{ matrix.asset_suffix }}/${{ matrix.output_name }}
+          upload_url: ${{ needs.create_release.outputs.upload_url }} # Get upload URL from the create_release job
+          asset_path: ./${{ env.ASSET_PATH }}
+          asset_name: ${{ env.ASSET_NAME }}
+          asset_content_type: application/octet-stream
 
   create_release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    # This job depends on the successful completion of all 'build' matrix jobs
-    needs: build
-    # Permissions needed to create a release and upload assets
     permissions:
-      contents: write
+      contents: write # Needed to create releases
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
-      # Optional: Checkout code if you need repo files for release notes, etc.
-      # - name: Checkout code
-      #   uses: actions/checkout@v4
+      - name: Get Version
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-      - name: Download all build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          # Download all artifacts produced by the 'build' job into this directory
-          path: release-artifacts
-
-      - name: List downloaded artifacts (for debugging)
-        run: |
-          echo "Downloaded artifacts structure:"
-          ls -R release-artifacts
-          # Expected structure:
-          # release-artifacts/
-          # ├── luffy-darwin-arm64/
-          # │   └── luffy
-          # ├── luffy-linux-amd64/
-          # │   └── luffy
-          # └── luffy-windows-amd64/
-          #     └── luffy.exe
-
-      - name: Create Release and Upload Assets
-        uses: softprops/action-gh-release@v2
-        with:
-          # The GITHUB_TOKEN is automatically provided by GitHub Actions
-          # tag_name: ${{ github.ref_name }} # Uses the tag that triggered the workflow (default)
-          # name: Release ${{ github.ref_name }} # Optional: customize release name (default is tag name)
-          # body: | # Optional: customize release body
-          #   Automated release for ${{ github.ref_name }}
-          #   This release includes the following binaries:
-          #   - Linux (amd64)
-          #   - Windows (amd64)
-          #   - macOS (arm64)
-          draft: false # Set to true to create a draft release
-          prerelease: false # Set to true to mark as a pre-release
-          files: | # Paths to the files to upload as release assets
-            release-artifacts/luffy-linux-amd64/luffy
-            release-artifacts/luffy-windows-amd64/luffy.exe
-            release-artifacts/luffy-darwin-arm64/luffy
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ steps.get_version.outputs.version }}
+          body: |
+            Automated release for version ${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false # Set to true if this is a pre-release
+
+# This job runs after all matrix builds are complete and uploads assets to the single release
+# It's a common pattern, but GitHub now supports uploading from matrix jobs directly to a release
+# created in a dependent job if the release creation happens first.
+# The above `upload-release-asset` steps directly upload to the release created by `create_release`
+# by using `needs.create_release.outputs.upload_url`.
+
+# We need a dummy final job that depends on the matrix job to ensure create_release runs first,
+# and the matrix jobs can access its output.
+  publish_release:
+    name: Finalize Release
+    runs-on: ubuntu-latest
+    needs: [create_release, release] # Depends on release creation and all builds
+    steps:
+      - name: Mark release as published (or perform other final steps)
+        run: echo "Release assets uploaded for ${{ github.ref_name }}"
