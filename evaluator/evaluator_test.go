@@ -551,6 +551,10 @@ func TestWhileLoopExpressions(t *testing.T) {
 	}{
 		{"let i = 0; while (i < 5) { i = i + 1; } i;", 5},
 		{"let i = 0; while (false) { i = i + 1; } i;", 0},
+		{"let i = 0; while (i < 3) { i = i + 2; } i;", 4},
+		{"let i = 10; while (i > 0) { i = i - 3; } i;", -2},
+		{"let i = 0; while (i < 5) { i = i + 1; return i; }", 1},
+		{"let i = 0; let j = 0; while (i < 5) { while (j < 5) { j = j + 1; } i = i + 1; } j;", 5},
 	}
 
 	for _, tt := range tests {
