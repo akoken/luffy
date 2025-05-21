@@ -51,7 +51,7 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0 # Disable CGO for better cross-compilation unless you need it
         run: |
-          go build -v -o ${{ steps.project_name.outputs.name }}_${{ steps.get_version.outputs.version }}_${{ matrix.goos }}_${{ matrix.goarch }}$(if [ "${{ matrix.goos }}" == "windows" ]; then echo ".exe"; fi) ./...
+          go build -v -o ${{ steps.project_name.outputs.name }}_${{ steps.get_version.outputs.version }}_${{ matrix.goos }}_${{ matrix.goarch }}$(if [ "${{ matrix.goos }}" == "windows" ]; then echo ".exe"; fi) .
           # Replace ./... with the path to your main package if it's not in the root
           # e.g., go build -v -o output_name ./cmd/myapp
 
