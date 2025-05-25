@@ -102,6 +102,15 @@ while (i < 5) {
   i = i + 1;
 }
 i; // Result: 5
+
+let i = 0; let j = 0; 
+while (i < 5) { 
+  while (j < 5) { 
+    j = j + 1; 
+  } 
+  i = i + 1; 
+} 
+j; // Result: 5
 ```
 
 ### Console Output
