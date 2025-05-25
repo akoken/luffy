@@ -276,10 +276,10 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 	}
 }
 
-func evalWhileExpression(fe *ast.WhileExpression, env *object.Environment) object.Object {
+func evalWhileExpression(we *ast.WhileExpression, env *object.Environment) object.Object {
 	var result object.Object
 	for {
-		condition := Eval(fe.Condition, env)
+		condition := Eval(we.Condition, env)
 		if isError(condition) {
 			return condition
 		}
@@ -288,7 +288,7 @@ func evalWhileExpression(fe *ast.WhileExpression, env *object.Environment) objec
 			break
 		}
 
-		result = Eval(fe.Body, env)
+		result = Eval(we.Body, env)
 		if result != nil {
 			rt := result.Type()
 			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
