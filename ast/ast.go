@@ -309,20 +309,20 @@ func (hl *HashLiteral) String() string {
 	return out.String()
 }
 
-type WhileExpression struct {
-	Token     token.Token // The 'for' token
+type WhileStatement struct {
+	Token     token.Token // The 'while' token
 	Condition Expression
 	Body      *BlockStatement
 }
 
-func (fe *WhileExpression) expressionNode()      {}
-func (fe *WhileExpression) TokenLiteral() string { return fe.Token.Literal }
-func (fe *WhileExpression) String() string {
+func (ws *WhileStatement) statementNode()       {}
+func (ws *WhileStatement) TokenLiteral() string { return ws.Token.Literal }
+func (ws *WhileStatement) String() string {
 	var out bytes.Buffer
-	out.WriteString("for")
-	out.WriteString(fe.Condition.String())
+	out.WriteString("while")
+	out.WriteString(ws.Condition.String())
 	out.WriteString(" ")
-	out.WriteString(fe.Body.String())
+	out.WriteString(ws.Body.String())
 	return out.String()
 }
 

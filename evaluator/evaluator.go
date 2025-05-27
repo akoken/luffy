@@ -47,6 +47,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		env.Set(node.Name.Value, val)
 		return val
 
+	case *ast.WhileStatement:
+		return evalWhileStatement(node, env)
+
 	// Expressions
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
@@ -123,9 +126,6 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 
 	case *ast.HashLiteral:
 		return evalHashLiteral(node, env)
-
-	case *ast.WhileExpression:
-		return evalWhileExpression(node, env)
 	}
 
 	return nil
@@ -276,10 +276,10 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 	}
 }
 
-func evalWhileExpression(we *ast.WhileExpression, env *object.Environment) object.Object {
+func evalWhileStatement(ws *ast.WhileStatement, env *object.Environment) object.Object {
 	var result object.Object
 	for {
-		condition := Eval(we.Condition, env)
+		condition := Eval(ws.Condition, env)
 		if isError(condition) {
 			return condition
 		}
@@ -288,7 +288,7 @@ func evalWhileExpression(we *ast.WhileExpression, env *object.Environment) objec
 			break
 		}
 
-		result = Eval(we.Body, env)
+		result = Eval(ws.Body, env)
 		if result != nil {
 			rt := result.Type()
 			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
