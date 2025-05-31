@@ -348,3 +348,35 @@ func (as *AssignmentStatement) String() string {
 
 	return out.String()
 }
+
+type ForStatement struct {
+	Token       token.Token // The 'for' token
+	Initializer Statement   // Optional initializer statement
+	Condition   Expression  // The loop condition
+	Increment   Expression  // Optional increment expression
+	Body        *BlockStatement // The body of the loop
+}
+
+func (fs *ForStatement) statementNode()       {}
+func (fs *ForStatement) TokenLiteral() string { return fs.Token.Literal }
+func (fs *ForStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString("for ")
+
+	if fs.Initializer != nil {
+		out.WriteString(fs.Initializer.String() + " ")
+	}
+
+	out.WriteString(fs.Condition.String() + " ")
+
+	if fs.Increment != nil {
+		out.WriteString(fs.Increment.String() + " ")
+	}
+
+	out.WriteString("{")
+	if fs.Initializer != nil {
+		out.WriteString(fs.Initializer.String())
+	}
+	out.WriteString("}")
+	return out.String()
+}
