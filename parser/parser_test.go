@@ -917,3 +917,40 @@ func TestParsingHashLiteralsWithExpressions(t *testing.T) {
 		testFunc(value)
 	}
 }
+
+func TestWhileStatement(t *testing.T) {
+	input := `while (x < y) { let sum = sum + x; }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Body does not contain %d statements. got=%d\n",
+			1, len(program.Statements))
+	}
+
+	stmt := program.Statements[0]
+	whileStmt, ok := stmt.(*ast.WhileStatement)
+	if !ok {
+		t.Fatalf("stmt not *ast.whileStatement. got=%T", stmt)
+	}
+
+	if !testInfixExpression(t, whileStmt.Condition, "x", "<", "y") {
+		return
+	}
+
+	if len(whileStmt.Body.Statements) != 1 {
+		t.Fatalf("function.Body.Statements has not 1 statements. got=%d\n",
+			len(whileStmt.Body.Statements))
+	}
+
+	bodyStmt, ok := whileStmt.Body.Statements[0].(*ast.LetStatement)
+	if !ok {
+		t.Fatalf("whileStatement body is not ast.LetStatement. got=%T",
+			whileStmt.Body.Statements[0])
+	}
+
+	testLetStatement(t, bodyStmt, "sum")
+}
