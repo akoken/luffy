@@ -1,10 +1,17 @@
-package evaluator
+package evaluator_test
 
 import (
+	"luffy/evaluator"
 	"luffy/lexer"
 	"luffy/object"
 	"luffy/parser"
 	"testing"
+)
+
+var (
+	NULL  = &object.Null{}
+	TRUE  = &object.Boolean{Value: true}
+	FALSE = &object.Boolean{Value: false}
 )
 
 func TestEvalIntegerExpression(t *testing.T) {
@@ -41,7 +48,7 @@ func testEval(input string) object.Object {
 	program := p.ParseProgram()
 	env := object.NewEnvironment()
 
-	return Eval(program, env)
+	return evaluator.Eval(program, env)
 }
 
 func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
@@ -565,5 +572,18 @@ func TestWhileLoopExpressions(t *testing.T) {
 		} else {
 			testNullObject(t, evaluated)
 		}
+	}
+}
+
+func TestForLoopStatements(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"let sum = 0; for (let i = 0; i < 5; i = i + 1) { sum = sum + i; } sum;", 10},
+	}
+
+	for _, tt := range tests {
+		testIntegerObject(t, testEval(tt.input), tt.expected)
 	}
 }

@@ -50,6 +50,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.WhileStatement:
 		return evalWhileStatement(node, env)
 
+	case *ast.ForStatement:
+		return evalForStatement(node, env)
+
 	// Expressions
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
@@ -297,6 +300,49 @@ func evalWhileStatement(ws *ast.WhileStatement, env *object.Environment) object.
 		}
 	}
 	return result
+}
+
+func evalForStatement(fs *ast.ForStatement, env *object.Environment) object.Object {
+	var result object.Object
+
+	// Initialize the loop variable if present
+	if fs.Initializer != nil {
+		result = Eval(fs.Initializer, env)
+		if isError(result) {
+			return result
+		}
+	}
+
+	for {
+		// Evaluate the loop condition
+		condition := Eval(fs.Condition, env)
+		if isError(condition) {
+			return condition
+		}
+
+		if !isTruthy(condition) {
+			break
+		}
+
+		result = Eval(fs.Body, env)
+		if isError(result) {
+			return result
+		}
+
+		if result != nil && (result.Type() == object.RETURN_VALUE_OBJ || result.Type() == object.ERROR_OBJ) {
+			return result
+		}
+
+		// Evaluate the increment expression if present
+		if fs.Increment != nil {
+			incrementResult := Eval(fs.Increment, env)
+			if isError(incrementResult) {
+				return incrementResult
+			}
+		}
+	}
+
+	return NULL
 }
 
 func evalIdentifier(
