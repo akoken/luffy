@@ -954,3 +954,40 @@ func TestWhileStatement(t *testing.T) {
 
 	testLetStatement(t, bodyStmt, "sum")
 }
+
+func TestForStatement(t *testing.T) {
+	input := "for (let x = 0; x < y; x = x + 1) { let sum = sum + x; }"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Body does not contain %d statements. got=%d\n",
+			1, len(program.Statements))
+	}
+
+	stmt := program.Statements[0]
+	forStmt, ok := stmt.(*ast.ForStatement)
+	if !ok {
+		t.Fatalf("stmt not *ast.forStatement. got=%T", stmt)
+	}
+
+	if !testInfixExpression(t, forStmt.Condition, "x", "<", "y") {
+		return
+	}
+
+	if len(forStmt.Body.Statements) != 1 {
+		t.Fatalf("function.Body.Statements has not 1 statements. got=%d\n",
+			len(forStmt.Body.Statements))
+	}
+
+	bodyStmt, ok := forStmt.Body.Statements[0].(*ast.LetStatement)
+	if !ok {
+		t.Fatalf("forStatement body is not ast.LetStatement. got=%T",
+			forStmt.Body.Statements[0])
+	}
+
+	testLetStatement(t, bodyStmt, "sum")
+}

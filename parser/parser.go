@@ -341,6 +341,9 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.WHILE:
 		return p.parseWhileStatement()
 
+	case token.FOR:
+		return p.parseForStatement()
+
 	case token.IDENT:
 		if p.peekTokenIs(token.ASSIGN) {
 			return p.parseAssignmentStatement()
@@ -507,6 +510,43 @@ func (p *Parser) parseWhileStatement() *ast.WhileStatement {
 
 	p.nextToken()
 	stmt.Condition = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	stmt.Body = p.parseBlockStatement()
+
+	return stmt
+}
+
+func (p *Parser) parseForStatement() *ast.ForStatement {
+	stmt := &ast.ForStatement{Token: p.curToken}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	p.nextToken()
+	stmt.Initializer = p.parseStatement()
+
+	if !p.curTokenIs(token.SEMICOLON) {
+		return nil
+	}
+
+	p.nextToken()
+	stmt.Condition = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.SEMICOLON) {
+		return nil
+	}
+
+	p.nextToken()
+	stmt.Increment = p.parseStatement()
 
 	if !p.expectPeek(token.RPAREN) {
 		return nil
