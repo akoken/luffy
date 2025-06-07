@@ -353,7 +353,7 @@ type ForStatement struct {
 	Token       token.Token // The 'for' token
 	Initializer Statement   // Optional initializer statement
 	Condition   Expression  // The loop condition
-	Increment   Expression  // Optional increment expression
+	Increment   Statement  // Optional increment expression
 	Body        *BlockStatement // The body of the loop
 }
 
