@@ -299,7 +299,7 @@ func evalWhileStatement(ws *ast.WhileStatement, env *object.Environment) object.
 			}
 		}
 	}
-	return result
+	return nil
 }
 
 func evalForStatement(fs *ast.ForStatement, env *object.Environment) object.Object {
@@ -342,7 +342,7 @@ func evalForStatement(fs *ast.ForStatement, env *object.Environment) object.Obje
 		}
 	}
 
-	return NULL
+	return nil
 }
 
 func evalIdentifier(
