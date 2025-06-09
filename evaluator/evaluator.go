@@ -83,6 +83,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 
 		return evalInfixExpression(node.Operator, left, right)
 
+	case *ast.PostfixExpression:
+        return evalPostfixExpression(node, env)
+
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
 
@@ -416,6 +419,38 @@ func evalHashLiteral(
 		pairs[hashed] = object.HashPair{Key: key, Value: value}
 	}
 	return &object.Hash{Pairs: pairs}
+}
+
+func evalPostfixExpression(node *ast.PostfixExpression, env *object.Environment) object.Object {
+    ident, ok := node.Left.(*ast.Identifier)
+    if !ok {
+        return newError("postfix operator can only be applied to identifiers, got %T", node.Left)
+    }
+
+    val, ok := env.Get(ident.Value)
+    if !ok {
+        return newError("identifier not found: %s", ident.Value)
+    }
+
+    integer, ok := val.(*object.Integer)
+    if !ok {
+        return newError("postfix operator can only be applied to integers, got %s", val.Type())
+    }
+
+    originalValue := &object.Integer{Value: integer.Value} // Store the original value
+
+    switch node.Operator {
+    case "++":
+        integer.Value++
+    case "--":
+        integer.Value--
+    default:
+        return newError("unknown postfix operator: %s", node.Operator)
+    }
+
+    env.Set(ident.Value, integer) // Update the value in the environment
+
+    return originalValue // Return the original value
 }
 
 func isTruthy(obj object.Object) bool {

@@ -580,10 +580,45 @@ func TestForLoopStatements(t *testing.T) {
 		input    string
 		expected int64
 	}{
-		{"let sum = 0; for (let i = 0; i < 5; i = i + 1) { sum = sum + i; } sum;", 10},
+		{"let sum = 0; for (let i = 0; i < 5; i++) { sum = sum + i; } sum;", 10},
 	}
 
 	for _, tt := range tests {
 		testIntegerObject(t, testEval(tt.input), tt.expected)
 	}
+}
+
+func TestPostfixExpressions(t *testing.T) {
+    tests := []struct {
+        input         string
+        expectedValue int64 // The value of the expression
+        expectedEnv   int64 // The value of the variable in the environment after evaluation
+    }{
+        {"let i = 5; i++;", 5, 6},
+        {"let i = 5; i--;", 5, 4},
+        {"let i = 5; i++; i;", 6, 6},
+        {"let i = 5; i--; i;", 4, 4},
+        {"let i = 5; (i++) + 1;", 6, 6},
+        {"let i = 5; (i--) - 1;", 4, 4},
+    }
+
+    for _, tt := range tests {
+        l := lexer.New(tt.input)
+		p := parser.New(l)
+		program := p.ParseProgram()
+		env := object.NewEnvironment()
+
+		evaluated := evaluator.Eval(program, env)
+
+        // Test the value of the expression
+        testIntegerObject(t, evaluated, tt.expectedValue)
+
+        // Test the value of the variable in the environment
+        variable, ok := env.Get("i")
+        if !ok {
+            t.Errorf("variable 'i' not found in environment")
+            continue
+        }
+        testIntegerObject(t, variable, tt.expectedEnv)
+    }
 }

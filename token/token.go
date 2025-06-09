@@ -30,6 +30,9 @@ const (
 	EQ     = "=="
 	NOT_EQ = "!="
 
+	INCREMENT = "++"
+    DECREMENT = "--"
+
 	// Delimiters
 	COMMA     = ","
 	SEMICOLON = ";"

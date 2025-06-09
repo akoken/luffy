@@ -18,6 +18,7 @@ const (
 	PREFIX      // -X or !X
 	CALL        // myFunction(X)
 	INDEX       // array[index]
+	POSTFIX     // i++ or i--
 )
 
 var precedences = map[token.TokenType]int{
@@ -31,6 +32,8 @@ var precedences = map[token.TokenType]int{
 	token.ASTERISK: PRODUCT,
 	token.LPAREN:   CALL,
 	token.LBRACKET: INDEX,
+	token.INCREMENT: POSTFIX,
+    token.DECREMENT: POSTFIX,
 }
 
 type (
@@ -78,12 +81,28 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.GT, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
 	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
+	p.registerInfix(token.INCREMENT, p.parsePostfixExpression)
+    p.registerInfix(token.DECREMENT, p.parsePostfixExpression)
 
 	// Read two tokens, so curToken and peekToken are both set
 	p.nextToken()
 	p.nextToken()
 
 	return p
+}
+
+func (p *Parser) parsePostfixExpression(left ast.Expression) ast.Expression {
+    //defer untrace(trace("parsePostfixExpression"))
+    expression := &ast.PostfixExpression{
+        Token:    p.curToken,
+        Operator: p.curToken.Literal,
+        Left:     left,
+    }
+
+    // Postfix operators don't consume the next token after the operator
+    // The nextToken() call happens in the main parseExpression loop
+
+    return expression
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
