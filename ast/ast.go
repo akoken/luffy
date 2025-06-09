@@ -351,9 +351,9 @@ func (as *AssignmentStatement) String() string {
 
 type ForStatement struct {
 	Token       token.Token // The 'for' token
-	Initializer Statement   // Optional initializer statement
+	Initializer Statement   // Initializer statement
 	Condition   Expression  // The loop condition
-	Increment   Statement  // Optional increment expression
+	Increment   Statement  // Increment expression
 	Body        *BlockStatement // The body of the loop
 }
 
