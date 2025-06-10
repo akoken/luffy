@@ -22,7 +22,8 @@ Luffy is a simple, interpreted programming language designed for learning and ex
 - **Functions**: Define and call functions, including higher-order functions.
 - **Closures**: Create and use closures for functional programming.
 - **Conditionals**: Use `if` and `else` expressions for control flow.
-- **Loops**: Use `while` and `for` loops for iterative control flow.
+- **Loops**: Use iterative control flow with `while` and `for` loops.
+- **Postfix Expressions**: Use increment (`++`) and decrement (`--`) operators for variables.
 - **Console Output**: Use the built-in `gum` function to print any value to the console.
 
 ## Examples
@@ -95,27 +96,43 @@ if (10 > 5) { 10 } else { 5 };  // Result: 10
 if (false) { 1 } else { 2 };    // Result: 2
 ```
 
-### Loops
+### Postfix Expressions
+```luffy
+let i = 5;
+i++; // i is now 6
+
+i--;
+// i is now 5 again
+
+let x = 10;
+let y = x++;
+// y is 10, x is 11
+```
+
+## Loops
+
+### While Loops
 ```luffy
 let i = 0;
 while (i < 5) {
-  i = i + 1;
+  i++;
 }
 i; // Result: 5
 
 let i = 0; let j = 0; 
 while (i < 5) { 
   while (j < 5) { 
-    j = j + 1; 
+    j++;
   } 
-  i = i + 1; 
+  i++;
 } 
 j; // Result: 5
 ```
 
+### For Loops
 ```luffy
 let sum = 0;
-for (let i = 0; i < 5; i = i + 1) {
+for (let i = 0; i < 5; i++) {
   sum = sum + i;
 }
 sum; // Result: 10
@@ -124,7 +141,7 @@ sum; // Result: 10
 ### Console Output
 ```luffy
 gum("Hello, Grand Line!");      // Prints: Hello, Grand Line!
-gum([1, 2, 3]);                  // Prints: [1, 2, 3]
+gum([1, 2, 3]);                 // Prints: [1, 2, 3]
 gum({"name": "Luffy"});         // Prints: {"name": "Luffy"}
 ```
 
